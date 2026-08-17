@@ -40,6 +40,7 @@ jobs:
         run: |
           set -e
           cd uboot-qsdk12.5-build
+          export GITHUB_WORKSPACE="$PWD"
           source ./build.sh build tl-er2260t
           echo "--- 检查产物 ---"
           find . -name '*.mbn' 2>/dev/null || true

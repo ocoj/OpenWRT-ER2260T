@@ -1,0 +1,45 @@
+name: Build ER2260T U-Boot
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-er2260t-uboot.yml'
+      - 'uboot-er2260t/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone 沉心 U-Boot
+        run: git clone --depth 1 https://github.com/chenxin527/uboot-qsdk12.5-build.git
+
+      - name: Apply ER2260T patch
+        run: |
+          cd uboot-qsdk12.5-build
+          git apply ../uboot-er2260t/er2260t-uboot.patch
+
+      - name: Install build dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          cd uboot-qsdk12.5-build
+          sudo ./build.sh install_deps
+
+      - name: Build ER2260T U-Boot
+        run: |
+          cd uboot-qsdk12.5-build
+          source ./build.sh build tl-er2260t
+
+      - name: Upload U-Boot artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: er2260t-uboot
+          path: uboot-qsdk12.5-build/bin/**
+          if-no-files-found: error

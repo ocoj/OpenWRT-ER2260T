@@ -1,0 +1,170 @@
+diff --git a/build.sh b/build.sh
+index a667f97..78c4c1f 100755
+--- a/build.sh
++++ b/build.sh
+@@ -94,6 +94,7 @@ DEVICE_LIST=(
+     "ipq807x:redmi_ax6:ipq807x_redmi_ax6:Redmi AX6"
+     "ipq807x:xiaomi_ax3600:ipq807x_xiaomi_ax3600:Xiaomi AX3600"
+     "ipq807x:xiaomi_ax9000:ipq807x_xiaomi_ax9000:Xiaomi AX9000"
++    "ipq807x:tl-er2260t:ipq807x_tl-er2260t:TP-Link TL-ER2260T"
+ )
+ 
+ # 获取设备配置
+diff --git a/u-boot-2016/arch/arm/dts/Makefile b/u-boot-2016/arch/arm/dts/Makefile
+index c143b4d..6238dff 100644
+--- a/u-boot-2016/arch/arm/dts/Makefile
++++ b/u-boot-2016/arch/arm/dts/Makefile
+@@ -478,3 +478,4 @@ dtbs: $(addprefix $(obj)/, $(dtb-y))
+ endif
+ 
+ clean-files := *.dtb *.o *.S
++dtb-$(CONFIG_TARGET_IPQ807x_TL_ER2260T)         += ipq807x-tl-er2260t.dtb
+diff --git a/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts b/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts
+new file mode 100644
+index 0000000..09ca741
+--- /dev/null
++++ b/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts
+@@ -0,0 +1,53 @@
++/*
++ * Copyright (c) 2016 - 2018, The Linux Foundation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++#include "ipq807x-soc.dtsi"
++#include <dt-bindings/qcom/gpio-ipq807x.h>
++/ {
++	machid = <0x08010006>;
++	config_name = "config@hk07", "config-hk07";
++
++	aliases {
++		console = "/serial@78B3000";
++		uart2 = "/serial@78B0000";
++	};
++	ess-switch {
++		switch_mac_mode = <0x0>;
++		switch_mac_mode1 = <0x7>;
++		switch_mac_mode2 = <0x7>;
++		napa_gpio = <37>;
++		napa_gpio_cnt = <1>;
++		port_phyinfo {
++			port@0 {
++				phy_address = <0>;
++				phy_type = <1>;
++			};
++			port@1 {
++				phy_address = <1>;
++				phy_type = <1>;
++			};
++			port@2 {
++				phy_address = <2>;
++				phy_type = <1>;
++			};
++			port@3 {
++				phy_address = <3>;
++				phy_type = <1>;
++			};
++			port@4 {
++				phy_address = <29>;
++				phy_type = <5>;
++			};
++			port@5 {
++				phy_address = <30>;
++				phy_type = <5>;
++			};
++		};
++	};
++};
+diff --git a/u-boot-2016/board/ipq807x/Kconfig b/u-boot-2016/board/ipq807x/Kconfig
+index 82fb495..e57c183 100644
+--- a/u-boot-2016/board/ipq807x/Kconfig
++++ b/u-boot-2016/board/ipq807x/Kconfig
+@@ -83,3 +83,10 @@ config TARGET_IPQ807x_XIAOMI_AX9000
+ 	default n
+     help
+ 	  Enable support for Xiaomi AX9000 board
++
++config TARGET_IPQ807x_TL_ER2260T
++    bool "TP-Link TL-ER2260T board support"
++	default n
++    help
++	  Enable support for TP-Link TL-ER2260T board
++
+diff --git a/u-boot-2016/configs/ipq807x_tl-er2260t_defconfig b/u-boot-2016/configs/ipq807x_tl-er2260t_defconfig
+new file mode 100644
+index 0000000..e80c016
+--- /dev/null
++++ b/u-boot-2016/configs/ipq807x_tl-er2260t_defconfig
+@@ -0,0 +1,69 @@
++CONFIG_ARM=y
++CONFIG_HAS_VBAR=y
++CONFIG_CPU_V7=y
++CONFIG_ARCH_IPQ807x=y
++CONFIG_TARGET_IPQ807x_TL_ER2260T=y
++CONFIG_SYS_MALLOC_F_LEN=0x4000
++CONFIG_SYS_MALLOC_F=y
++CONFIG_DM_SERIAL=y
++CONFIG_DEFAULT_DEVICE_TREE=""
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_EXPERT=y
++CONFIG_SYS_MALLOC_CLEAR_ON_INIT=y
++CONFIG_FIT=y
++CONFIG_FIT_VERBOSE=y
++CONFIG_SYS_EXTRA_OPTIONS=""
++CONFIG_SYS_PROMPT="IPQ807x# "
++CONFIG_FAILSAFE_MAC_MANAGEMENT=y
++CONFIG_MAC_TYPE_RAW_HEX=y
++CONFIG_MAC_PART_NAME="0:ART"
++CONFIG_MAC_OFFSET_IN_PART=0x0
++CONFIG_MAC_COUNT=2
++CONFIG_CMD_BDI=y
++CONFIG_CMD_BOOTM=y
++CONFIG_CMD_GO=y
++CONFIG_CMD_SAVEENV=y
++CONFIG_CMD_MEMORY=y
++CONFIG_CMD_CRC32=y
++CONFIG_CMD_DM=y
++CONFIG_CMD_LOADB=y
++CONFIG_CMD_LOADS=y
++CONFIG_CMD_FLASH=y
++CONFIG_CMD_ECHO=y
++CONFIG_CMD_ITEST=y
++CONFIG_CMD_SOURCE=y
++CONFIG_CMD_NET=y
++CONFIG_QCA8075_PHY=y
++CONFIG_QCA_AQUANTIA_PHY=y
++CONFIG_QCA8033_PHY=y
++CONFIG_QCA8081_PHY=y
++CONFIG_CMD_MISC=y
++CONFIG_PARTITION_UUIDS=y
++CONFIG_BOOTSTAGE_USER_COUNT=20
++CONFIG_BOOTSTAGE_STASH_ADDR=0
++CONFIG_BOOTSTAGE_STASH_SIZE=4096
++CONFIG_SUPPORT_OF_CONTROL=y
++CONFIG_OF_CONTROL=y
++CONFIG_OF_BOARD_FIXUP=y
++CONFIG_OF_SEPARATE=y
++CONFIG_NET=y
++CONFIG_DM=y
++CONFIG_DM_WARN=y
++CONFIG_DM_DEVICE_REMOVE=y
++CONFIG_DM_STDIO=y
++CONFIG_DM_SEQ_ALIAS=y
++CONFIG_SIMPLE_BUS=y
++CONFIG_IPQ_I2C=y
++CONFIG_PCI_IPQ=y
++CONFIG_REQUIRE_SERIAL_CONSOLE=y
++CONFIG_USB=y
++CONFIG_DM_USB=y
++CONFIG_USB_XHCI_IPQ=y
++CONFIG_HAVE_PRIVATE_LIBGCC=y
++CONFIG_USE_PRIVATE_LIBGCC=y
++CONFIG_SYS_HZ=1000
++CONFIG_LZMA=y
++CONFIG_SYS_THUMB_BUILD=y
++CONFIG_HAS_THUMB2=y

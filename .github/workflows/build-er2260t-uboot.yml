@@ -22,8 +22,12 @@ jobs:
 
       - name: Apply ER2260T patch
         run: |
+          set -e
           cd uboot-qsdk12.5-build
-          git apply ../uboot-er2260t/er2260t-uboot.patch
+          git apply --check ../uboot-er2260t/er2260t-uboot.patch
+          git apply --verbose ../uboot-er2260t/er2260t-uboot.patch
+          echo "--- patch 应用后的 DEVICE_LIST 检查 ---"
+          grep -n "tl-er2260t" build.sh || echo "!! 未找到 tl-er2260t 条目"
 
       - name: Install build dependencies
         env:
@@ -34,8 +38,15 @@ jobs:
 
       - name: Build ER2260T U-Boot
         run: |
+          set -e
           cd uboot-qsdk12.5-build
           source ./build.sh build tl-er2260t
+          echo "--- 检查产物 ---"
+          find . -name '*.mbn' 2>/dev/null || true
+          if [ -z "$(find . -name '*.mbn' 2>/dev/null)" ]; then
+            echo "错误: 未产出 .mbn"
+            exit 1
+          fi
 
       - name: Upload U-Boot artifact
         uses: actions/upload-artifact@v4

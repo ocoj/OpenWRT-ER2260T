@@ -11,14 +11,17 @@ index a667f97..78c4c1f 100755
  
  # 获取设备配置
 diff --git a/u-boot-2016/arch/arm/dts/Makefile b/u-boot-2016/arch/arm/dts/Makefile
-index c143b4d..6238dff 100644
+index c143b4d..db343ae 100644
 --- a/u-boot-2016/arch/arm/dts/Makefile
 +++ b/u-boot-2016/arch/arm/dts/Makefile
-@@ -478,3 +478,4 @@ dtbs: $(addprefix $(obj)/, $(dtb-y))
- endif
- 
- clean-files := *.dtb *.o *.S
+@@ -186,6 +186,7 @@ dtb-$(CONFIG_TARGET_IPQ807X_OPPO_CKB01)        += ipq807x-oppo_ckb01.dtb
+ dtb-$(CONFIG_TARGET_IPQ807x_REDMI_AX6)         += ipq807x-redmi_ax6.dtb
+ dtb-$(CONFIG_TARGET_IPQ807x_XIAOMI_AX3600)     += ipq807x-xiaomi_ax3600.dtb
+ dtb-$(CONFIG_TARGET_IPQ807x_XIAOMI_AX9000)     += ipq807x-xiaomi_ax9000.dtb
 +dtb-$(CONFIG_TARGET_IPQ807x_TL_ER2260T)         += ipq807x-tl-er2260t.dtb
+ 
+ ifdef CONFIG_INCLUDE_EXTRA_DTB
+ dtb-$(CONFIG_TARGET_IPQ5018_CMCC_MR3000D_CI)   += ipq5018-jdcloud_ax3000.dtb \
 diff --git a/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts b/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts
 new file mode 100644
 index 0000000..09ca741

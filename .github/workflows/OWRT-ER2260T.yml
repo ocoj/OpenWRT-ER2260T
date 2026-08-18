@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2026 VIKINGYFY
+
+name: OWRT-ER2260T
+
+on:
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  config:
+    name: ${{matrix.CONFIG}}
+    strategy:
+      fail-fast: false
+      matrix:
+        CONFIG: [IPQ807X-ER2260T]
+        SOURCE: [VIKINGYFY/immortalwrt]
+        BRANCH: [main]
+
+    uses: ./.github/workflows/WRT-CORE.yml
+    with:
+      WRT_CONFIG: ${{matrix.CONFIG}}
+      WRT_THEME: aurora
+      WRT_NAME: OWRT
+      WRT_SSID: OWRT
+      WRT_WORD: 12345678
+      WRT_IP: 192.168.10.1
+      WRT_PW: 无
+      WRT_REPO: https://github.com/${{matrix.SOURCE}}.git
+      WRT_BRANCH: ${{matrix.BRANCH}}
+      WRT_SOURCE: ${{matrix.SOURCE}}

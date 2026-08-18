@@ -24,10 +24,10 @@ index c143b4d..db343ae 100644
  dtb-$(CONFIG_TARGET_IPQ5018_CMCC_MR3000D_CI)   += ipq5018-jdcloud_ax3000.dtb \
 diff --git a/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts b/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts
 new file mode 100644
-index 0000000..0288518ef419831b9fd0742baefbd66a1ff10bf7
+index 0000000..5c1a8e7
 --- /dev/null
 +++ b/u-boot-2016/arch/arm/dts/ipq807x-tl-er2260t.dts
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,119 @@
 +/*
 + * Copyright (c) 2016 - 2018, The Linux Foundation. All rights reserved.
 + *
@@ -147,7 +147,6 @@ index 0000000..0288518ef419831b9fd0742baefbd66a1ff10bf7
 +		};
 +	};
 +};
-
 diff --git a/u-boot-2016/board/ipq807x/Kconfig b/u-boot-2016/board/ipq807x/Kconfig
 index 82fb495..e57c183 100644
 --- a/u-boot-2016/board/ipq807x/Kconfig

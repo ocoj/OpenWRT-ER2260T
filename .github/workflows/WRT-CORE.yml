@@ -199,7 +199,7 @@ jobs:
           echo "======================="
           df -h
           echo "======================="
-          du -h --max-depth=1
+          timeout 180 du -h --max-depth=1 || true
           echo "======================="
 
       - name: Package Firmware

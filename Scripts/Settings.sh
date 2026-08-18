@@ -62,3 +62,31 @@ if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
 		echo "qualcommax set up nowifi successfully!"
 	fi
 fi
+
+# ER2260T 专用修复
+if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
+	echo "=== ER2260T patches ==="
+
+	# 1) 有线机型去除 wifi dtsi（沿用 wifi-no 构建行为）
+	find $DTS_PATH -type f ! -iname '*nowifi*' -exec sed -i 's/ipq\(6018\|8074\).dtsi/ipq\1-nowifi.dtsi/g' {} +
+	echo "ER2260T nowifi dtsi applied"
+
+	# 2) GE 口：QSGMII -> PSGMII（与 U-Boot / 原厂 / 旧版固件一致）
+	ER_DTS="$DTS_PATH/ipq8070-tl-er2260t.dts"
+	if grep -q "MAC_MODE_QSGMII" "$ER_DTS"; then
+		sed -i 's/switch_mac_mode = <MAC_MODE_QSGMII>;/switch_mac_mode = <MAC_MODE_PSGMII>;/' "$ER_DTS"
+		echo "ER2260T PSGMII applied"
+	else
+		echo "ER2260T switch_mac_mode already PSGMII or missing"
+	fi
+
+	# 3) SFP：打开 qca-ssdk 的 SFP 编译开关（ipq807x/HPPE 默认关闭）
+	ER_SSDK="./package/qca-nss/qca-ssdk/Makefile"
+	if grep -q "SSDK_MAKE_FLAGS += CHIP_TYPE=HPPE" "$ER_SSDK"; then
+		sed -i 's/SSDK_MAKE_FLAGS += CHIP_TYPE=HPPE/SSDK_MAKE_FLAGS += CHIP_TYPE=HPPE IN_SFP=TRUE IN_SFP_PHY=TRUE IN_PHY_I2C_MODE=TRUE/' "$ER_SSDK"
+		echo "ER2260T SSDK SFP flags applied"
+	else
+		echo "ER2260T SSDK CHIP_TYPE=HPPE line not found"
+	fi
+	echo "=== ER2260T patches done ==="
+fi

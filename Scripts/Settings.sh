@@ -88,5 +88,18 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 	else
 		echo "ER2260T SSDK CHIP_TYPE=HPPE line not found"
 	fi
+	# 4) 精简冗余包：AC 管理 + 音频（纯有线路由用不上）
+	sed -i '/CONFIG_PACKAGE_luci-app-gecoosac/d' .config
+	sed -i '/CONFIG_PACKAGE_kmod-sound-core/d' .config
+	sed -i '/CONFIG_PACKAGE_kmod-usb-audio/d' .config
+	echo "ER2260T redundant packages removed"
+
+	# 5) 网络监控/管理工具
+	echo "CONFIG_PACKAGE_snmpd-ssl=y" >> .config
+	echo "CONFIG_PACKAGE_snmp-utils-ssl=y" >> .config
+	echo "CONFIG_PACKAGE_netdata=y" >> .config
+	echo "CONFIG_PACKAGE_prometheus-node-exporter-lua=y" >> .config
+	echo "CONFIG_PACKAGE_zabbix-agentd=y" >> .config
+	echo "ER2260T monitoring tools added"
 	echo "=== ER2260T patches done ==="
 fi

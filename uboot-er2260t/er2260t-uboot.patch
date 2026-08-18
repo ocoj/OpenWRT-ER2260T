@@ -113,9 +113,12 @@ index 0000000..0288518ef419831b9fd0742baefbd66a1ff10bf7
 +		switch_mac_mode = <0x0>;
 +		switch_mac_mode1 = <0x7>;
 +		switch_mac_mode2 = <0x7>;
++		sfp_port1 = <4>;
++		sfp_port2 = <5>;
 +		sfp_gpio = <59>;
 +		napa_gpio = <37>;
 +		napa_gpio_cnt = <1>;
++		uniphy_ext_ref_clk;
 +		port_phyinfo {
 +			port@0 {
 +				phy_address = <0>;

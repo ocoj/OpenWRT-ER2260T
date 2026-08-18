@@ -101,5 +101,12 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 	echo "CONFIG_PACKAGE_prometheus-node-exporter-lua=y" >> .config
 	echo "CONFIG_PACKAGE_zabbix-agentd=y" >> .config
 	echo "ER2260T monitoring tools added"
+
+	# 6) 修复 qca-ssdk sfp_phy.c PHY API (Linux 6.18)
+	SFPPHY_PATCH="./package/qca-nss/qca-ssdk/patches/012-compat-sfp-phy-driver-register-linux-6.18.patch"
+	echo "LS0tIGEvc3JjL2hzbC9waHkvc2ZwX3BoeS5jCisrKyBiL3NyYy9oc2wvcGh5L3NmcF9waHkuYwpAQCAtNjgxLDcgKzY4MSw3IEBACiAJaWYgKGhzbF9wb3J0X3BoeV9hY2Nlc3NfdHlwZV9nZXQoZGV2X2lkLCBwb3J0KSA9PSBQSFlfSTJDX0FDQ0VTUykgewogCQlpZihwaHlkZXYtPmRydikKLQkJCXBoeV9kcml2ZXJfdW5yZWdpc3RlcihwaHlkZXYtPmRydik7CisJCQlwaHlfZHJpdmVyc191bnJlZ2lzdGVyKHBoeWRldi0+ZHJ2LCAxKTsKIAl9CiAjZW5kaWYKIAlyZXR1cm4gMDsKIH0KQEAgLTcyMiw3ICs3MjIsNyBAQAogCWlmKHNmcF9waHlfZHJ2X3JlZ2lzdGVyZWQgPT0gQV9GQUxTRSkKIAl7Ci0JCXJldCA9IHBoeV9kcml2ZXJfcmVnaXN0ZXIoJnNmcF9waHlfZHJpdmVyLCBUSElTX01PRFVMRSk7CisJCXJldCA9IHBoeV9kcml2ZXJzX3JlZ2lzdGVyKCZzZnBfcGh5X2RyaXZlciwgMSwgVEhJU19NT0RVTEUpOwogCQlzZnBfcGh5X2Rydl9yZWdpc3RlcmVkID0gQV9UUlVFOwogCX0KIAlyZXR1cm4gcmV0OwogfQpAQCAtNzMyLDYgKzczMiw2IEBACiAJaWYgKHNmcF9waHlfZHJ2X3JlZ2lzdGVyZWQgPT0gQV9UUlVFKQogCXsKLQkJcGh5X2RyaXZlcl91bnJlZ2lzdGVyKCZzZnBfcGh5X2RyaXZlcik7CisJCXBoeV9kcml2ZXJzX3VucmVnaXN0ZXIoJnNmcF9waHlfZHJpdmVyLCAxKTsKIAkJc2ZwX3BoeV9kcnZfcmVnaXN0ZXJlZCA9IEFfRkFMU0U7CiAJfQogfQo=" | base64 -d > "$SFPPHY_PATCH"
+	echo "ER2260T sfp_phy.c PHY API patch added"
+
+
 	echo "=== ER2260T patches done ==="
 fi

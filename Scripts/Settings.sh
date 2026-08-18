@@ -107,6 +107,13 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 	echo "LS0tIGEvc3JjL2hzbC9waHkvc2ZwX3BoeS5jCisrKyBiL3NyYy9oc2wvcGh5L3NmcF9waHkuYwpAQCAtNjgxLDcgKzY4MSw3IEBACiAJaWYgKGhzbF9wb3J0X3BoeV9hY2Nlc3NfdHlwZV9nZXQoZGV2X2lkLCBwb3J0KSA9PSBQSFlfSTJDX0FDQ0VTUykgewogCQlpZihwaHlkZXYtPmRydikKLQkJCXBoeV9kcml2ZXJfdW5yZWdpc3RlcihwaHlkZXYtPmRydik7CisJCQlwaHlfZHJpdmVyc191bnJlZ2lzdGVyKHBoeWRldi0+ZHJ2LCAxKTsKIAl9CiAjZW5kaWYKIAlyZXR1cm4gMDsKIH0KQEAgLTcyMiw3ICs3MjIsNyBAQAogCWlmKHNmcF9waHlfZHJ2X3JlZ2lzdGVyZWQgPT0gQV9GQUxTRSkKIAl7Ci0JCXJldCA9IHBoeV9kcml2ZXJfcmVnaXN0ZXIoJnNmcF9waHlfZHJpdmVyLCBUSElTX01PRFVMRSk7CisJCXJldCA9IHBoeV9kcml2ZXJzX3JlZ2lzdGVyKCZzZnBfcGh5X2RyaXZlciwgMSwgVEhJU19NT0RVTEUpOwogCQlzZnBfcGh5X2Rydl9yZWdpc3RlcmVkID0gQV9UUlVFOwogCX0KIAlyZXR1cm4gcmV0OwogfQpAQCAtNzMyLDYgKzczMiw2IEBACiAJaWYgKHNmcF9waHlfZHJ2X3JlZ2lzdGVyZWQgPT0gQV9UUlVFKQogCXsKLQkJcGh5X2RyaXZlcl91bnJlZ2lzdGVyKCZzZnBfcGh5X2RyaXZlcik7CisJCXBoeV9kcml2ZXJzX3VucmVnaXN0ZXIoJnNmcF9waHlfZHJpdmVyLCAxKTsKIAkJc2ZwX3BoeV9kcnZfcmVnaXN0ZXJlZCA9IEFfRkFMU0U7CiAJfQogfQo=" | base64 -d > "$SFPPHY_PATCH"
 	echo "ER2260T sfp_phy.c PHY API patch added"
 
+	# 7) 禁用 WiFi 认证（纯有线路由无 WiFi；规避 hostapd 补丁失败）
+	echo "CONFIG_PACKAGE_wpad-openssl=n" >> .config
+	echo "CONFIG_PACKAGE_wpad-full-openssl=n" >> .config
+	echo "CONFIG_PACKAGE_wpad-basic-openssl=n" >> .config
+	echo "CONFIG_PACKAGE_hostapd=n" >> .config
+	echo "CONFIG_PACKAGE_hostapd-utils=n" >> .config
+	echo "ER2260T wpad/hostapd disabled"
 
 	echo "=== ER2260T patches done ==="
 fi

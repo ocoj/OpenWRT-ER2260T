@@ -123,6 +123,7 @@ jobs:
             ./wrt/staging_dir/host*
             ./wrt/staging_dir/tool*
             ./wrt/staging_dir/target*
+            ./wrt/dl
 
       - name: Update Caches
         if: env.WRT_TEST != 'true'

@@ -180,7 +180,7 @@ jobs:
           fi
 
       - name: Download Packages
-        if: env.WRT_TEST != 'true'
+        if: env.WRT_TEST != 'true' && env.QUICK_TEST != 'true'
         run: |
           cd ./wrt/
 
@@ -192,6 +192,8 @@ jobs:
           cd ./wrt/
 
           if [[ "$QUICK_TEST" == 'true' ]]; then
+            make tools/install -j$(nproc)
+            make toolchain/install -j$(nproc)
             make package/qca-nss/qca-ssdk/compile -j$(nproc) V=s
           else
             make -j$(nproc) || make -j1 V=s

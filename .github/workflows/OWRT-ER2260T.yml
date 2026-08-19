@@ -5,6 +5,12 @@ name: OWRT-ER2260T
 
 on:
   workflow_dispatch:
+    inputs:
+      QUICK_TEST:
+        description: '只编译 qca-ssdk 快速验证（true=快速，false=完整固件）'
+        required: false
+        default: 'false'
+        type: string
 
 permissions: write-all
 
@@ -30,3 +36,4 @@ jobs:
       WRT_REPO: https://github.com/${{matrix.SOURCE}}.git
       WRT_BRANCH: ${{matrix.BRANCH}}
       WRT_SOURCE: ${{matrix.SOURCE}}
+      QUICK_TEST: ${{inputs.QUICK_TEST}}

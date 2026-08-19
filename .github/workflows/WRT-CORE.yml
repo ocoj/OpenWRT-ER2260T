@@ -43,6 +43,9 @@ on:
       WRT_TEST:
         required: false
         type: string
+      QUICK_TEST:
+        required: false
+        type: string
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -58,6 +61,7 @@ env:
   WRT_SOURCE: ${{inputs.WRT_SOURCE}}
   WRT_PACKAGE: ${{inputs.WRT_PACKAGE}}
   WRT_TEST: ${{inputs.WRT_TEST}}
+  QUICK_TEST: ${{inputs.QUICK_TEST}}
 
 jobs:
   core:
@@ -118,6 +122,7 @@ jobs:
             ./wrt/.ccache
             ./wrt/staging_dir/host*
             ./wrt/staging_dir/tool*
+            ./wrt/staging_dir/target*
 
       - name: Update Caches
         if: env.WRT_TEST != 'true'
@@ -169,7 +174,10 @@ jobs:
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh
 
-          make defconfig -j$(nproc) && make clean -j$(nproc)
+          make defconfig -j$(nproc)
+          if [[ "$QUICK_TEST" != 'true' ]]; then
+            make clean -j$(nproc)
+          fi
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
@@ -183,7 +191,11 @@ jobs:
         run: |
           cd ./wrt/
 
-          make -j$(nproc) || make -j1 V=s
+          if [[ "$QUICK_TEST" == 'true' ]]; then
+            make package/qca-nss/qca-ssdk/compile -j$(nproc) V=s
+          else
+            make -j$(nproc) || make -j1 V=s
+          fi
 
       - name: Machine Information
         run: |
@@ -203,7 +215,7 @@ jobs:
 
           cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
 
-          if [[ $WRT_TEST != 'true' ]]; then
+          if [[ $WRT_TEST != 'true' && $QUICK_TEST != 'true' ]]; then
             echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
             echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
 
@@ -222,6 +234,7 @@ jobs:
           fi
 
       - name: Release Firmware
+        if: env.WRT_TEST != 'true' && env.QUICK_TEST != 'true'
         uses: softprops/action-gh-release@master
         with:
           tag_name: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-${{env.WRT_DATE}}

@@ -94,14 +94,17 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 	sed -i '/CONFIG_PACKAGE_kmod-usb-audio/d' .config
 	echo "ER2260T redundant packages removed"
 
-	# 5) 网络监控/管理工具
-	echo "CONFIG_PACKAGE_snmpd-ssl=y" >> .config
-	echo "CONFIG_PACKAGE_snmp-utils-ssl=y" >> .config
-	echo "CONFIG_PACKAGE_netdata=y" >> .config
-	echo "CONFIG_PACKAGE_prometheus-node-exporter-lua=y" >> .config
-	echo "CONFIG_PACKAGE_zabbix-agentd=y" >> .config
-	echo "CONFIG_PACKAGE_luci-app-netdata=y" >> .config
-	echo "ER2260T monitoring tools added"
+	# 5) 网络监控/管理工具（阶段2：ER2260T_MINIMAL=0 时启用）
+	ER2260T_MINIMAL=1
+	if [ "$ER2260T_MINIMAL" != "1" ]; then
+		echo "CONFIG_PACKAGE_snmpd-ssl=y" >> .config
+		echo "CONFIG_PACKAGE_snmp-utils-ssl=y" >> .config
+		echo "CONFIG_PACKAGE_netdata=y" >> .config
+		echo "CONFIG_PACKAGE_prometheus-node-exporter-lua=y" >> .config
+		echo "CONFIG_PACKAGE_zabbix-agentd=y" >> .config
+		echo "CONFIG_PACKAGE_luci-app-netdata=y" >> .config
+		echo "ER2260T monitoring tools added"
+	fi
 
 	# 6) 修复 qca-ssdk sfp_phy.c PHY API (Linux 6.18)
 	SFPPHY_PATCH="./package/qca-nss/qca-ssdk/patches/012-compat-sfp-phy-driver-register-linux-6.18.patch"

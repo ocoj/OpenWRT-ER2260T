@@ -80,6 +80,12 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 		echo "ER2260T switch_mac_mode already PSGMII or missing"
 	fi
 
+	# 2b) SFP 控制 GPIO（原厂 sfp1_gpio/sfp2_gpio，使能 SFP 发射）
+	if grep -q "switch_mac_mode2" "$ER_DTS" && ! grep -q "sfp1_gpio" "$ER_DTS"; then
+		sed -i 's/switch_mac_mode2 = <MAC_MODE_10GBASE_R>;/switch_mac_mode2 = <MAC_MODE_10GBASE_R>;\n\t\t\tsfp1_gpio = <\&tlmm 29 0>;\n\t\t\tsfp2_gpio = <\&tlmm 30 0>;/' "$ER_DTS"
+		echo "ER2260T sfp gpio applied"
+	fi
+
 	# 3) SFP：打开 qca-ssdk 的 SFP 编译开关（ipq807x/HPPE 默认关闭）
 	ER_SSDK="./package/qca-nss/qca-ssdk/Makefile"
 	if grep -q "SSDK_MAKE_FLAGS += CHIP_TYPE=HPPE" "$ER_SSDK"; then

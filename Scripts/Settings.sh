@@ -71,42 +71,40 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 	find $DTS_PATH -type f ! -iname '*nowifi*' -exec sed -i 's/ipq\(6018\|8074\).dtsi/ipq\1-nowifi.dtsi/g' {} +
 	echo "ER2260T nowifi dtsi applied"
 
-	# 2) GE 口：QSGMII -> PSGMII（与 U-Boot / 原厂 / 旧版固件一致）
-	ER_DTS="$DTS_PATH/ipq8070-tl-er2260t.dts"
-	if grep -q "MAC_MODE_QSGMII" "$ER_DTS"; then
-		sed -i 's/switch_mac_mode = <MAC_MODE_QSGMII>;/switch_mac_mode = <MAC_MODE_PSGMII>;/' "$ER_DTS"
-		echo "ER2260T PSGMII applied"
+	# 2) SFP：复刻 VIKINGYFY/immortalwrt PR#196 的社区验证方案
+	#    （QCA SSDK SFP 路径 + 6.18 兼容补丁 + ER2260T DTS）
+	#    设备树：直接用 PR196 的完整 DTS 补丁（含 PSGMII、SFP 端口、
+	#    link-poll、mdio-bus、sfp_rx_los_pin、blsp1_i2c3 等）
+	if [ -f "$GITHUB_WORKSPACE/Patches/er2260t-sfp-pr196-dts.patch" ]; then
+		patch -p1 < "$GITHUB_WORKSPACE/Patches/er2260t-sfp-pr196-dts.patch"
+		echo "ER2260T SFP PR196 DTS patch applied"
 	else
-		echo "ER2260T switch_mac_mode already PSGMII or missing"
+		echo "ER2260T SFP PR196 DTS patch missing"
 	fi
 
-	# 2b) SFP：主线 sfp.c 方案（DTS 重构 + nss-dp SFP bus 支持）
-	#     内核配置：PHYLINK / SFP / MARVELL_10G_PHY / AQUANTIA_PHY（MDIO_I2C 由 SFP 自动选中）
-	ER_KCFG="target/linux/qualcommax/config-6.18"
-	grep -q "CONFIG_PHYLINK=y" "$ER_KCFG" || echo "CONFIG_PHYLINK=y" >> "$ER_KCFG"
-	grep -q "CONFIG_SFP=y" "$ER_KCFG" || echo "CONFIG_SFP=y" >> "$ER_KCFG"
-	grep -q "CONFIG_MARVELL_10G_PHY=y" "$ER_KCFG" || echo "CONFIG_MARVELL_10G_PHY=y" >> "$ER_KCFG"
-	grep -q "CONFIG_AQUANTIA_PHY=y" "$ER_KCFG" || echo "CONFIG_AQUANTIA_PHY=y" >> "$ER_KCFG"
-	echo "ER2260T SFP kernel config applied"
-
-	#     设备树：blsp1_i2c3（GPIO46/47）挂 sff,sfp 节点；dp5_syn/dp6_syn 改 sfp 引用；
-	#     qcom,port_phyinfo 移除 SSDK SFP 属性（media-type/phy-i2c-mode）
-	if [ -f "$GITHUB_WORKSPACE/Patches/er2260t-sfp-mainline-dts.patch" ]; then
-		patch -p1 < "$GITHUB_WORKSPACE/Patches/er2260t-sfp-mainline-dts.patch"
-		echo "ER2260T SFP DTS patch applied"
+	#     QCA SSDK：开启 SFP 相关编译开关
+	SSDK_MK="./package/qca-nss/qca-ssdk/Makefile"
+	if grep -q "IN_SFP_PHY=TRUE" "$SSDK_MK"; then
+		echo "ER2260T SSDK SFP flags already present"
 	else
-		echo "ER2260T SFP DTS patch missing"
+		sed -i 's/CHIP_TYPE=HPPE/CHIP_TYPE=HPPE \\\n\tIN_SFP_PHY=TRUE \\\n\tIN_SFP=TRUE \\\n\tIN_PHY_I2C_MODE=TRUE/' "$SSDK_MK"
+		echo "ER2260T SSDK SFP flags applied"
 	fi
 
-	#     nss-dp：注册 SFP bus upstream（connect_phy -> phy_connect_direct）
-	mkdir -p ./package/qca-nss/qca-nss-dp/patches
-	if [ -f "$GITHUB_WORKSPACE/Patches/013-nss-dp-sfp-bus-support.patch" ]; then
-		cp "$GITHUB_WORKSPACE/Patches/013-nss-dp-sfp-bus-support.patch" \
-			./package/qca-nss/qca-nss-dp/patches/
-		echo "ER2260T nss-dp SFP patch copied"
-	else
-		echo "ER2260T nss-dp SFP patch missing"
-	fi
+	#     QCA SSDK：拷贝 PR196 的 SFP 6.18 兼容补丁（012-016）
+	mkdir -p ./package/qca-nss/qca-ssdk/patches
+	for n in 012-compat-sfp-phy-driver-linux-6.18 \
+		013-fix-sfp-link-status-cache-loop \
+		014-fix-sfp-link-without-rx-los-gpio \
+		015-fix-10g-r-without-hardware-rx-los \
+		016-keep-sfp-driver-bound-on-later-ports; do
+		if [ -f "$GITHUB_WORKSPACE/Patches/$n.patch" ]; then
+			cp "$GITHUB_WORKSPACE/Patches/$n.patch" ./package/qca-nss/qca-ssdk/patches/
+		else
+			echo "ER2260T SSDK patch $n missing"
+		fi
+	done
+	echo "ER2260T SSDK SFP patches copied"
 
 
 	# 4) 精简冗余包：AC 管理 + 音频（纯有线路由用不上）

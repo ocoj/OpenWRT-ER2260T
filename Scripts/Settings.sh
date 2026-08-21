@@ -72,7 +72,7 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 	echo "ER2260T nowifi dtsi applied"
 
 	# 2) SFP：复刻 VIKINGYFY/immortalwrt PR#196 的社区验证方案
-	#    （QCA SSDK SFP 路径 + 6.18 兼容补丁 + ER2260T DTS）
+	#    （QCA SSDK SFP 路径 + 6.18 兼容补丁 + ER2260T DTS + 网络/LED 配置）
 	#    设备树：直接用 PR196 的完整 DTS 补丁（含 PSGMII、SFP 端口、
 	#    link-poll、mdio-bus、sfp_rx_los_pin、blsp1_i2c3 等）
 	if [ -f "$GITHUB_WORKSPACE/Patches/er2260t-sfp-pr196-dts.patch" ]; then
@@ -80,6 +80,23 @@ if [[ "$WRT_CONFIG" == "IPQ807X-ER2260T" ]]; then
 		echo "ER2260T SFP PR196 DTS patch applied"
 	else
 		echo "ER2260T SFP PR196 DTS patch missing"
+	fi
+
+	#     base-files：接口名已改为 lan1~lan6，必须同步替换 board.d 配置
+	#     （否则 LAN 桥引用不存在的旧接口名，设备起来后无 IP 可达）
+	ER_BF="target/linux/qualcommax/ipq807x/base-files/etc"
+	if [ -f "$GITHUB_WORKSPACE/Patches/er2260t-02_network" ]; then
+		cp "$GITHUB_WORKSPACE/Patches/er2260t-02_network" "$ER_BF/board.d/02_network"
+		echo "ER2260T 02_network replaced"
+	fi
+	if [ -f "$GITHUB_WORKSPACE/Patches/er2260t-01_leds" ]; then
+		cp "$GITHUB_WORKSPACE/Patches/er2260t-01_leds" "$ER_BF/board.d/01_leds"
+		echo "ER2260T 01_leds replaced"
+	fi
+	if [ -f "$GITHUB_WORKSPACE/Patches/er2260t-sfp_link_speed" ]; then
+		cp "$GITHUB_WORKSPACE/Patches/er2260t-sfp_link_speed" "$ER_BF/init.d/sfp_link_speed"
+		chmod +x "$ER_BF/init.d/sfp_link_speed"
+		echo "ER2260T sfp_link_speed installed"
 	fi
 
 	#     QCA SSDK：开启 SFP 相关编译开关

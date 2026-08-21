@@ -1,6 +1,6 @@
 --- a/target/linux/qualcommax/dts/ipq8070-tl-er2260t.dts
 +++ b/target/linux/qualcommax/dts/ipq8070-tl-er2260t.dts
-@@ -226,26 +226,32 @@
+@@ -226,26 +226,33 @@
  			phy_address = <3>;
  		};
  
@@ -26,6 +26,7 @@
  
  &blsp1_i2c2 {
  	status = "okay";
++	clock-frequency = <100000>;
 +
 +	sfp1: sfp@50 {
 +		compatible = "sff,sfp";
@@ -41,7 +42,7 @@
  };
  
  &edma {
-@@ -286,7 +292,7 @@
+@@ -286,7 +293,7 @@
  
  &dp5_syn {
  	status = "okay";
@@ -50,7 +51,7 @@
  	label = "10ge1";
  	nvmem-cells = <&macaddr_wan>;
  	nvmem-cell-names = "mac-address";
-@@ -294,7 +300,7 @@
+@@ -294,7 +301,7 @@
  
  &dp6_syn {
  	status = "okay";

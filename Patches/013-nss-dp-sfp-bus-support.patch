@@ -1,0 +1,181 @@
+--- a/nss_dp_main.c
++++ b/nss_dp_main.c
+@@ -27,6 +27,7 @@
+ #include <linux/of_address.h>
+ #include <linux/of_mdio.h>
+ #include <linux/phy.h>
++#include <linux/sfp.h>
+ 
+ #if defined(NSS_DP_PPE_SUPPORT)
+ #include <fal/fal_vsi.h>
+@@ -956,6 +957,11 @@
+ {
+ 	struct device_node *np = dp_priv->pdev->dev.of_node;
+ 
++	if (dp_priv->sfp_bus) {
++		sfp_bus_del_upstream(dp_priv->sfp_bus);
++		dp_priv->sfp_bus = NULL;
++	}
++
+ 	if (!dp_priv->phydev)
+ 		return;
+ 
+@@ -966,6 +972,108 @@
+ 		of_phy_deregister_fixed_link(np);
+ }
+ 
++#if IS_ENABLED(CONFIG_SFP)
++static void nss_dp_sfp_attach(void *upstream, struct sfp_bus *bus)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++
++	dp_priv->netdev->sfp_bus = bus;
++}
++
++static void nss_dp_sfp_detach(void *upstream, struct sfp_bus *bus)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++
++	dp_priv->netdev->sfp_bus = NULL;
++}
++
++static int nss_dp_sfp_module_insert(void *upstream,
++				    const struct sfp_eeprom_id *id)
++{
++	return 0;
++}
++
++static void nss_dp_sfp_module_remove(void *upstream)
++{
++}
++
++static int nss_dp_sfp_module_start(void *upstream)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++
++	if (dp_priv->phydev)
++		phy_start(dp_priv->phydev);
++
++	return 0;
++}
++
++static void nss_dp_sfp_module_stop(void *upstream)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++
++	if (dp_priv->phydev)
++		phy_stop(dp_priv->phydev);
++}
++
++static void nss_dp_sfp_link_down(void *upstream)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++
++	netif_carrier_off(dp_priv->netdev);
++}
++
++static void nss_dp_sfp_link_up(void *upstream)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++
++	netif_carrier_on(dp_priv->netdev);
++}
++
++static int nss_dp_sfp_connect_phy(void *upstream, struct phy_device *phy)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++	int ret;
++
++	if (dp_priv->phydev)
++		return -EBUSY;
++
++	ret = phy_connect_direct(dp_priv->netdev, phy,
++				 nss_dp_adjust_link,
++				 dp_priv->phy_mii_type);
++	if (ret)
++		return ret;
++
++	dp_priv->phydev = phy;
++	phy_attached_info(phy);
++
++	return 0;
++}
++
++static void nss_dp_sfp_disconnect_phy(void *upstream,
++				      struct phy_device *phydev)
++{
++	struct nss_dp_dev *dp_priv = upstream;
++
++	if (dp_priv->phydev) {
++		phy_disconnect(dp_priv->phydev);
++		dp_priv->phydev = NULL;
++	}
++}
++
++static const struct sfp_upstream_ops nss_dp_sfp_upstream_ops = {
++	.attach = nss_dp_sfp_attach,
++	.detach = nss_dp_sfp_detach,
++	.module_insert = nss_dp_sfp_module_insert,
++	.module_remove = nss_dp_sfp_module_remove,
++	.module_start = nss_dp_sfp_module_start,
++	.module_stop = nss_dp_sfp_module_stop,
++	.link_down = nss_dp_sfp_link_down,
++	.link_up = nss_dp_sfp_link_up,
++	.connect_phy = nss_dp_sfp_connect_phy,
++	.disconnect_phy = nss_dp_sfp_disconnect_phy,
++};
++#endif
++
+ /*
+  * nss_dp_probe()
+  */
+@@ -1066,6 +1174,30 @@
+ 
+ 	dp_priv->drv_flags |= NSS_DP_PRIV_FLAG(INIT_DONE);
+ 
++#if IS_ENABLED(CONFIG_SFP)
++	/* SFP cage: register as upstream so the mainline SFP framework
++	 * reads the module EEPROM and attaches the module PHY.
++	 */
++	dp_priv->sfp_bus = sfp_bus_find_fwnode(pdev->dev.fwnode);
++	if (IS_ERR(dp_priv->sfp_bus)) {
++		ret = PTR_ERR(dp_priv->sfp_bus);
++		dp_priv->sfp_bus = NULL;
++		netdev_err(netdev, "failed to find SFP bus: %d\n", ret);
++		goto phy_setup_fail;
++	}
++
++	if (dp_priv->sfp_bus) {
++		ret = sfp_bus_add_upstream(dp_priv->sfp_bus, dp_priv,
++				&nss_dp_sfp_upstream_ops);
++		sfp_bus_put(dp_priv->sfp_bus);
++		if (ret) {
++			netdev_err(netdev, "failed to add SFP upstream: %d\n",
++				   ret);
++			dp_priv->sfp_bus = NULL;
++			goto phy_setup_fail;
++		}
++	} else
++#endif
+ 	if (of_find_property(np, "phy-handle", NULL) || of_phy_is_fixed_link(np)) {
+ 		dp_priv->phydev = of_phy_get_and_connect(netdev, np,
+ 				&nss_dp_adjust_link);
+--- a/include/nss_dp_dev.h
++++ b/include/nss_dp_dev.h
+@@ -40,6 +40,8 @@
+ #include "nss_dp_ppeds.h"
+ #endif
+ 
++struct sfp_bus;
++
+ #define NSS_DP_ACL_DEV_ID 0
+ 
+ #if defined(NSS_DP_MAC_POLL_SUPPORT)
+@@ -231,6 +233,7 @@
+ 	/* Phy related stuff */
+ 	struct phy_device *phydev;	/* Phy device */
+ 	struct mii_bus *miibus;		/* MII bus */
++	struct sfp_bus *sfp_bus;	/* SFP bus for SFP cages */
+ 	uint32_t phy_mii_type;		/* RGMII/SGMII/QSGMII */
+ 	uint32_t phy_mdio_addr;		/* Mdio address */
+ 	bool link_poll;			/* Link polling enable? */

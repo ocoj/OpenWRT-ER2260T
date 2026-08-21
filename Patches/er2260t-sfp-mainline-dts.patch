@@ -1,0 +1,68 @@
+--- a/target/linux/qualcommax/dts/ipq8070-tl-er2260t.dts
++++ b/target/linux/qualcommax/dts/ipq8070-tl-er2260t.dts
+@@ -226,20 +226,14 @@
+ 			phy_address = <3>;
+ 		};
+ 
+-		sfp_1: port@4 {
++		port@4 {
+ 			port_id = <5>;
+ 			phy_address = <29>;
+-			phy_i2c_address = <29>;
+-			phy-i2c-mode;
+-			media-type = "sfp";
+ 		};
+ 
+-		sfp_2: port@5 {
++		port@5 {
+ 			port_id = <6>;
+ 			phy_address = <30>;
+-			phy_i2c_address = <30>;
+-			phy-i2c-mode;
+-			media-type = "sfp";
+ 		};
+ 	};
+ };
+@@ -248,6 +242,24 @@
+ 	status = "okay";
+ };
+ 
++&blsp1_i2c3 {
++	status = "okay";
++	pinctrl-0 = <&i2c_1_pins>;
++	pinctrl-names = "default";
++
++	sfp1: sfp@50 {
++		compatible = "sff,sfp";
++		reg = <0x50>;
++		maximum-power-milliwatt = <3000>;
++	};
++
++	sfp2: sfp@51 {
++		compatible = "sff,sfp";
++		reg = <0x51>;
++		maximum-power-milliwatt = <3000>;
++	};
++};
++
+ &edma {
+ 	status = "okay";
+ };
+@@ -286,7 +298,7 @@
+ 
+ &dp5_syn {
+ 	status = "okay";
+-	phy-handle = <&sfp_1>;
++	sfp = <&sfp1>;
+ 	label = "10ge1";
+ 	nvmem-cells = <&macaddr_wan>;
+ 	nvmem-cell-names = "mac-address";
+@@ -294,7 +306,7 @@
+ 
+ &dp6_syn {
+ 	status = "okay";
+-	phy-handle = <&sfp_2>;
++	sfp = <&sfp2>;
+ 	label = "10ge2";
+ 	nvmem-cells = <&macaddr_lan>;
+ 	nvmem-cell-names = "mac-address";
